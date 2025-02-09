@@ -9438,58 +9438,53 @@ VALUES
   ('189', '2020-01-22', 'deposit', '302'),
   ('189', '2020-01-27', 'withdrawal', '861');
 
-CREATE TABLE nodes(
-  node_id INTEGER,
-  node VARCHAR(255)
-);
+-- Retrieve all table names in the public schema  
+SELECT table_name  
+FROM information_schema.tables  
+WHERE table_schema = 'public';  
 
-INSERT INTO nodes
-VALUES 
-(1,'Full node'),
-(2,'Masternodes'),
-(3,'Lightning nodes'),
-(4,'Light nodes'),
-(5,'Distributed Node');
+-- View all records in the regions table  
+SELECT *  
+FROM regions;  
 
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public';
+-- View all records in the nodes table  
+SELECT *  
+FROM nodes;  
 
-SELECT *
-FROM regions;
+-- View all records in the customer_nodes table, ordered by customer_Id  
+SELECT *  
+FROM customer_nodes  
+ORDER BY customer_Id;  
 
-SELECT *
-FROM nodes;
+-- Let's view all records in the customer_transactions table  
+SELECT *  
+FROM customer_transactions;  
 
-SELECT *
-FROM customer_nodes
-order by customer_Id;
+-- Let's create a new table by joining customer_nodes with regions and nodes  
+CREATE TABLE updated_customer_nodes AS  
+SELECT customer_nodes.customer_Id,  
+       regions.region_name,  
+       nodes.node,  
+       customer_nodes.start_date,  
+       customer_nodes.end_date  
+FROM customer_nodes  
+LEFT JOIN regions  
+ON customer_nodes.region_Id = regions.region_Id  
+LEFT JOIN nodes  
+ON customer_nodes.node_Id = nodes.node_Id  
+ORDER BY customer_nodes.customer_Id;  
 
-SELECT *
-FROM customer_transactions;
+-- Let's check for any missing (NULL) region names or node values  
+SELECT *  
+FROM updated_customer_nodes  
+WHERE region_name = 'Null' OR node = 'Null';  
 
-CREATE TABLE updated_customer_nodes AS
-SELECT customer_nodes.customer_Id,
-		regions.region_name,
-		nodes.node,
-		customer_nodes.start_date,
-		customer_nodes.end_date
-FROM customer_nodes
-LEFT JOIN regions
-ON customer_nodes.region_Id = regions.region_Id
-LEFT JOIN nodes
-ON customer_nodes.node_Id = nodes.node_Id
-Order by customer_nodes.customer_Id;
-
-SELECT *
-FROM updated_customer_nodes
-WHERE region_name = 'Null' OR node = 'Null';
-
-SELECT *
-FROM updated_customer_nodes
+-- Let's view all records in updated_customer_nodes, ordered by customer_Id  
+SELECT *  
+FROM updated_customer_nodes  
 ORDER BY customer_Id;
 
--- What are the number of nodes per region?
+-- What is the number of nodes per region?
 SELECT region_name, 
 		COUNT(node) AS node_count
 FROM updated_customer_nodes
